@@ -30,6 +30,8 @@ dependencies = [
     "sparrowpy>=1",
     "requests",
     "gmsh",
+    "trimesh",
+    "pyfar",
 ]
 
 [project.optional-dependencies]

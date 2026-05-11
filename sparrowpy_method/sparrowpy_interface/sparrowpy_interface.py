@@ -64,11 +64,15 @@ class sparrowpyMethod(SimulationMethod):
             result_container["results"][0]["sourceY"],
             result_container["results"][0]["sourceZ"],
         )
-        receiver_coords =  pf.Coordinates(
-            result_container["results"][0]["responses"][0]["x"],
-            result_container["results"][0]["responses"][0]["y"],
-            result_container["results"][0]["responses"][0]["z"],
-        )
+        n_receivers = len(result_container["results"][0]["responses"])
+        receiver_coords = pf.Coordinates(np.zeros((n_receivers)), 0, 0)
+        cart = receiver_coords.cartesian
+        for i_rec in range(n_receivers):
+            rec = result_container["results"][0]["responses"][i_rec]
+            cart[i_rec, 0] = rec["x"]
+            cart[i_rec, 1] = rec["y"]
+            cart[i_rec, 2] = rec["z"]
+        receiver_coords.cartesian = cart
 
         # read walls and triangular patches
         (
@@ -113,15 +117,16 @@ class sparrowpyMethod(SimulationMethod):
             receivers=receiver_coords)
 
         # Write results back to JSON
-        for i_frequency in range(n_bands):
-            result_container["results"][0]["responses"][0]["receiverResults"].append(
-                {
-                    "data": etc_radiosity.time[i_frequency].tolist(),
-                    "t": etc_radiosity.times,
-                    "frequency": frequencies[i_frequency],
-                    "type": "edc",
-                }
-            )
+        for i_rec in range(n_receivers):
+            for i_frequency in range(n_bands):
+                result_container["results"][0]["responses"][i_rec]["receiverResults"].append(
+                    {
+                        "data": 10*np.log10(etc_radiosity.time[i_rec, i_frequency]).tolist(),
+                        "t": etc_radiosity.times.tolist(),
+                        "frequency": frequencies[i_frequency],
+                        "type": "edc",
+                    }
+                )
         result_container["results"][0]["percentage"] = 100
 
         # Save the updated JSON
@@ -163,6 +168,16 @@ def _import_room_geometry(json_file_path):
     geometry_file = input_data['geo_path']
     gmsh.open(geometry_file)
 
+    # If an lc is given in the geo file, we want to compensate for this
+    lc_value = 1 # set to 1 by default
+    # for line in geo_content:
+    #     if "lc =" in line:
+    #         lc_value = float(line.split('=')[1].strip().strip(';'))
+    #         print("Extracted value:", lc_value)
+    #         break
+    
+    gmsh.option.setNumber('Mesh.MeshSizeFactor', 5/lc_value)
+
     # generate 2d surface mesh
     dim = 2 # 2D surfaces
     gmsh.model.mesh.generate(dim)
@@ -198,9 +213,9 @@ def _import_room_geometry(json_file_path):
 
         # materials
         indies_material  = []
-        for s_name in surface_group_names:
+        for ii, s_name in enumerate(surface_group_names):
             if material_name == s_name:
-                indies_material.append(s_name)
+                indies_material.append(ii)
         material_to_walls.append(indies_material)
 
 
@@ -215,7 +230,6 @@ def _import_room_geometry(json_file_path):
     patches_points = []
     n_patches = 0
     patch_to_wall_ids = []
-    material_to_walls = []
     for i, surface_name in enumerate(surface_group_names):
         dim_tags = gmsh.model.getEntitiesForPhysicalName(surface_name)
         dim, tag = dim_tags[0]

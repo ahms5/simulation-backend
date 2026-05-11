@@ -44,7 +44,7 @@ def test_import_room_geometry(create_temporary_input_file):
     radiosity.check()
 
     # check material stuff 
-    npt.assert_equal(material_to_walls, np.arange(6))
+    npt.assert_equal(np.squeeze(material_to_walls), np.arange(6))
     npt.assert_equal(np.array(alphas).shape, (6, 6))
     npt.assert_equal(np.array(scattering).shape, (6, 6))
     npt.assert_array_less(np.array(alphas), 1)
