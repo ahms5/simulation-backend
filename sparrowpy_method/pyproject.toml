@@ -1,0 +1,75 @@
+[project]
+name = "sparrowpy_interface"
+version = "0.1.0"
+description = "Sound Propagation with Acoustic Radiosity for Realistic Outdoor Worlds"
+requires-python = ">=3.11,<3.15"
+authors = [
+    { name = "Anne Heimes", email = "ahe@akustik.rwth-aachen.de" },
+]
+keywords = [
+    "acoustic simulation",
+    "geometrical acoustics",
+    "acoustic radiance transfer",
+    "brdf",
+    "scattering",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "numpy>=1.23.0",
+    "sparrowpy>=1",
+    "requests",
+    "gmsh",
+]
+
+[project.optional-dependencies]
+deploy = [
+    "twine",
+    "wheel",
+    "build",
+    "setuptools",
+    "bump-my-version",
+]
+
+tests = [
+    "pytest",
+    "pytest-cov",
+    "watchdog",
+    "ruff",
+    "coverage",
+]
+
+docs = [
+    "sphinx",
+    "autodocsumm>=0.2.14",
+    "pydata-sphinx-theme",
+    "sphinx_mdinclude",
+    "sphinx-design",
+    "sphinx-favicon",
+    "sphinx-reredirects",
+]
+
+dev = ["sparrowpy_interface[deploy,tests,docs]"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["sparrowpy_interface"]
+
+[project.scripts]
+sparrowpy_interface = "sparrowpy_interface:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
