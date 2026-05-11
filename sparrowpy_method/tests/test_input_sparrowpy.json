@@ -13,7 +13,8 @@
         "speed_of_sound": 343.2,
         "etc_time_resolution_s": 0.05,
         "etc_duration_s": 0.5,
-        "max_reflection_order": 2
+        "max_reflection_order": 2,
+        "patch_length": 5
     },
     "results": [
         {

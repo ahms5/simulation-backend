@@ -57,6 +57,8 @@ class sparrowpyMethod(SimulationMethod):
         speed_of_sound = simulation_settings['speed_of_sound']
         etc_duration_s = simulation_settings['etc_duration_s']
         max_reflection_order = simulation_settings['max_reflection_order']
+        patch_length = simulation_settings['patch_length']
+        
 
         # Read source and receiver positions
         source_coords = pf.Coordinates(
@@ -79,7 +81,7 @@ class sparrowpyMethod(SimulationMethod):
             walls_points, walls_normal, walls_up_vector,
             patches_points, n_patches, patch_to_wall_ids,
             material_to_walls, alphas, scattering,
-            ) = _import_room_geometry(json_file_path)
+            ) = _import_room_geometry(json_file_path, patch_length)
     
         radiosity = sparrowpy.DirectionalRadiosityFast(
             walls_points,
@@ -136,7 +138,7 @@ class sparrowpyMethod(SimulationMethod):
         print("sparrowpy simulation completed successfully!")
 
 
-def _import_room_geometry(json_file_path):
+def _import_room_geometry(json_file_path, patch_length):
     """Import room geometry and absorption coefficients.
 
     The geometry is read from a .geo file specified in the JSON input file.
@@ -176,7 +178,7 @@ def _import_room_geometry(json_file_path):
     #         print("Extracted value:", lc_value)
     #         break
     
-    gmsh.option.setNumber('Mesh.MeshSizeFactor', 5/lc_value)
+    gmsh.option.setNumber('Mesh.MeshSizeFactor', patch_length/lc_value)
 
     # generate 2d surface mesh
     dim = 2 # 2D surfaces

@@ -28,7 +28,7 @@ def test_import_room_geometry(create_temporary_input_file):
         patches_points, n_patches, patch_to_wall_ids,
         material_to_walls, alphas, scattering,
         ) = _import_room_geometry(
-            create_temporary_input_file)
+            create_temporary_input_file, patch_length=5)
     
     # create radiosity object
     radiosity = sparrowpy.DirectionalRadiosityFast(

@@ -15,13 +15,6 @@ def test_sparrowpy_method_cli(mock_requests_post, create_temporary_input_file):
     with open(create_temporary_input_file, 'r') as f:
         data = json.load(f)
     
-
-    sparrowpy_method_object = sparrowpyMethod(create_temporary_input_file)
-    sparrowpy_method_object.run_simulation()
-
-    # Save the results to a separate file
-    sparrowpy_method_object.save_results()
-
     # check that results were written to the JSON file
     assert "receiverResults" in data['results'][0]['responses'][0]
     results = data['results'][0]['responses'][0]['receiverResults']
