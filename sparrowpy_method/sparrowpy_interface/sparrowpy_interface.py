@@ -11,8 +11,6 @@ import numpy as np
 import trimesh
 
 
-
-
 class sparrowpyMethod(SimulationMethod):
     """Interface class to run the sparrowpy method.
 
@@ -59,7 +57,6 @@ class sparrowpyMethod(SimulationMethod):
         max_reflection_order = simulation_settings['max_reflection_order']
         patch_length = simulation_settings['patch_length']
         
-
         # Read source and receiver positions
         source_coords = pf.Coordinates(
             result_container["results"][0]["sourceX"],
@@ -113,10 +110,9 @@ class sparrowpyMethod(SimulationMethod):
             etc_time_resolution=etc_time_resolution_s,
             etc_duration=etc_duration_s,
             max_reflection_order=max_reflection_order)
-        
 
         etc_radiosity = radiosity.collect_energy_receiver_mono(
-            receivers=receiver_coords)
+            receivers=receiver_coords, direct_sound=True)
 
         # Write results back to JSON
         for i_rec in range(n_receivers):
