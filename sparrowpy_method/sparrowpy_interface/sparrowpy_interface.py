@@ -148,19 +148,19 @@ class sparrowpyMethod(SimulationMethod):
             t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
             result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
 
-            t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')[0]
+            t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')
             result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
 
-            c80 = pyrato.parameters.clarity(edc, 80)[0]
+            c80 = pyrato.parameters.clarity(edc, 80)
             result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
 
-            d50 = pyrato.parameters.definition(edc, 50)[0]
+            d50 = pyrato.parameters.definition(edc, 50)
             result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
 
-            ts = np.ones_like(d50)
+            ts = center_time(edc) # TODO replace by pyrato 1.1.0 version
             result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
 
-            spl = 10*np.log10(edc.time[i_rec, ..., 0]/1e-12)
+            spl = 10*np.log10(edc.time[..., 0]/1e-12)
             result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
         
         # Save the updated JSON
@@ -335,3 +335,82 @@ def _import_room_geometry(json_file_path, patch_length):
         walls_points, walls_normal, walls_up_vector,
         patches_points, n_patches, patch_to_wall_ids,
         material_to_walls, alphas, scattering)
+
+
+# copy pasted from pyrato
+def center_time(energy_decay_curve):
+    r"""
+    Calculate the room-acoustic center time (:math:`T_s`).
+
+    The center time :math:`T_s` is the time of the centroid of the squared
+    impulse response. It quantifies the balance between early and late
+    sound energy [#isoTs]_.
+
+    The parameter is defined as
+
+    .. math::
+
+        T_s =
+        \frac{
+            \displaystyle \int_{0}^{\infty} t \cdot p^2(t)\,\mathrm{d}t
+        }{
+            \displaystyle \int_{0}^{\infty} p^2(t)\,\mathrm{d}t
+        }
+
+    where :math:`p(t)` is the room impulse response sound pressure.
+
+    Using the energy decay curve :math:`e(t)`, the parameter can be
+    computed efficiently via the EDC identity as
+
+    .. math::
+
+        T_s =
+        \frac{
+            \displaystyle \int_{0}^{\infty} e(t)\,\mathrm{d}t
+        }{
+            e(0)
+        }.
+
+    Parameters
+    ----------
+    energy_decay_curve : pyfar.TimeData
+        Energy decay curve of the room impulse response. The EDC must
+        start at time zero and must have equal time spacing.
+
+    Returns
+    -------
+    center_time : numpy.ndarray
+        Center time (:math:`T_s`) in seconds,
+        shaped according to the channel shape of the input EDC.
+
+    References
+    ----------
+    .. [#isoTs] ISO 3382, Acoustics — Measurement of the reverberation
+        time of rooms with reference to other acoustical parameters.
+    """
+
+    if not isinstance(energy_decay_curve, pf.TimeData):
+        raise TypeError(
+            "energy_decay_curve must be a pyfar.TimeData or derived object.")
+
+    if not np.isclose(energy_decay_curve.times[0], 0.0):
+        raise ValueError("energy_decay_curve must start at time zero.")
+
+    if np.any(energy_decay_curve.time[..., 0] == 0):
+        raise ValueError(
+            "Initial energy of energy_decay_curve must not be zero.")
+
+    dt = np.diff(energy_decay_curve.times)
+    if not np.allclose(dt, dt[0]):
+        raise ValueError(
+            "energy_decay_curve must have equal time spacing.")
+
+    sampling_interval = dt[0]
+    initial_energy = energy_decay_curve.time[..., 0]
+    center_time = (
+        np.nansum(energy_decay_curve.time, axis=-1)
+        * sampling_interval
+        / initial_energy
+    )
+
+    return center_time
