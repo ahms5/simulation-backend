@@ -42,12 +42,12 @@ class sparrowpyMethod(SimulationMethod):
         Args:
             json_file_path: Path to the JSON configuration file
         """
+        print('extract simulation settings...')
         # Load the input JSON file
         with open(json_file_path, "r") as json_file:
             result_container = json.load(json_file)
 
         # extract simulation settings
-
         frequencies = result_container['results'][0]['frequencies']
         n_bands = len(frequencies)
         simulation_settings = result_container["simulationSettings"]
@@ -73,6 +73,8 @@ class sparrowpyMethod(SimulationMethod):
             cart[i_rec, 2] = rec["z"]
         receiver_coords.cartesian = cart
 
+        print('extract geometry...')
+        set_progress_and_save(5, result_container, json_file_path)
         # read walls and triangular patches
         (
             walls_points, walls_normal, walls_up_vector,
@@ -89,6 +91,8 @@ class sparrowpyMethod(SimulationMethod):
             patch_to_wall_ids,
             )
         
+        print('set materials...')
+        set_progress_and_save(10, result_container, json_file_path)
         # apply materials
         incoming = pf.Coordinates(0, 0, 1, weights=1)
         outgoing = pf.Coordinates(0, 0, 1, weights=1)
@@ -101,19 +105,29 @@ class sparrowpyMethod(SimulationMethod):
             radiosity.set_wall_brdf(jj, brdf, incoming, outgoing)
 
         # run simulation
+        print('bake geometry...')
+        set_progress_and_save(15, result_container, json_file_path)
         radiosity.bake_geometry()
 
+        print('initialize source...')
+        set_progress_and_save(40, result_container, json_file_path)
         radiosity.init_source_energy(source_coords)
 
+        print('compute energy exchange...')
+        set_progress_and_save(65, result_container, json_file_path)
         radiosity.calculate_energy_exchange(
             speed_of_sound=speed_of_sound,
             etc_time_resolution=etc_time_resolution_s,
             etc_duration=etc_duration_s,
             max_reflection_order=max_reflection_order)
 
+        print('collect energy at receiver...')
+        set_progress_and_save(90, result_container, json_file_path)
         etc_radiosity = radiosity.collect_energy_receiver_mono(
             receivers=receiver_coords, direct_sound=True)
 
+        print('writing results...')
+        set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON
         for i_rec in range(n_receivers):
             for i_frequency in range(n_bands):
@@ -125,13 +139,17 @@ class sparrowpyMethod(SimulationMethod):
                         "type": "edc",
                     }
                 )
-        result_container["results"][0]["percentage"] = 100
-
+    
         # Save the updated JSON
-        with open(json_file_path, "w") as json_output:
-            json_output.write(json.dumps(result_container, indent=4))
+        set_progress_and_save(100, result_container, json_file_path)
 
         print("sparrowpy simulation completed successfully!")
+
+def set_progress_and_save(percentage, result_container, json_file_path):
+    result_container["results"][0]["percentage"] = percentage
+    # Save the updated JSON
+    with open(json_file_path, "w") as json_output:
+        json_output.write(json.dumps(result_container, indent=4))
 
 
 def _import_room_geometry(json_file_path, patch_length):
