@@ -154,9 +154,11 @@ class sparrowpyMethod(SimulationMethod):
                     }
                 )
             t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
+            t20[t20==-np.inf] = 0
             result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
 
             t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')
+            t30[t30==-np.inf] = 0
             result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
 
             c80 = pyrato.parameters.clarity(edc, 80)
