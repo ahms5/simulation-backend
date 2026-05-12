@@ -129,8 +129,10 @@ class sparrowpyMethod(SimulationMethod):
         print('writing results...')
         set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON
+        dynamic_range_db = 100
         result_db = 10*np.log10(etc_radiosity.time/1e-12)
-        result_db[result_db<-500] = -500
+        limit = np.max(result_db) - dynamic_range_db
+        result_db[result_db<limit] = limit
         for i_rec in range(n_receivers):
             for i_frequency in range(n_bands):
                 result_container["results"][0]["responses"][i_rec]["receiverResults"].append(
