@@ -136,7 +136,7 @@ class sparrowpyMethod(SimulationMethod):
         result_db[result_db<limit] = limit
         for i_rec in range(n_receivers):
             edc = pyrato.edc.schroeder_integration(etc_radiosity[i_rec, :], is_energy=True)
-            edc_db = 10*np.log10(edc.time)
+            edc_db = 10*np.log10(edc.time/1e-12)
             limit = np.max(edc_db) - dynamic_range_db
             edc_db[edc_db<limit] = limit
             for i_frequency in range(n_bands):
@@ -157,7 +157,7 @@ class sparrowpyMethod(SimulationMethod):
             c80 = pyrato.parameters.clarity(edc, 80)
             result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
 
-            d50 = pyrato.parameters.definition(edc, 50)
+            d50 = pyrato.parameters.definition(edc, 50) * 100
             result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
 
             ts = center_time(edc)*1000 # in ms TODO replace by pyrato 1.1.0 version
