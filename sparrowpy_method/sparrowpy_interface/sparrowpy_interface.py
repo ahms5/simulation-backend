@@ -135,16 +135,19 @@ class sparrowpyMethod(SimulationMethod):
         limit = np.max(result_db) - dynamic_range_db
         result_db[result_db<limit] = limit
         for i_rec in range(n_receivers):
+            edc = pyrato.edc.schroeder_integration(etc_radiosity[i_rec, :], is_energy=True)
+            edc_db = 10*np.log10(edc)
+            limit = np.max(edc_db) - dynamic_range_db
+            edc_db[edc_db<limit] = limit
             for i_frequency in range(n_bands):
                 result_container["results"][0]["responses"][i_rec]["receiverResults"].append(
                     {
-                        "data": result_db[i_rec, i_frequency].tolist(),
+                        "data": edc_db[i_frequency].tolist(),
                         "t": etc_radiosity.times.tolist(),
                         "frequency": frequencies[i_frequency],
                         "type": "edc",
                     }
                 )
-            edc = pyrato.edc.schroeder_integration(etc_radiosity[i_rec, :], is_energy=True)
             t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
             result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
 
