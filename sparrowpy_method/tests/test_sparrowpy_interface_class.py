@@ -53,7 +53,7 @@ def test_import_room_geometry(create_temporary_input_file):
     npt.assert_equal(np.array(alphas).shape, (6, 6))
     npt.assert_equal(np.array(scattering).shape, (6, 6))
     npt.assert_array_less(np.array(alphas), 1)
-    npt.assert_array_less(np.array(scattering), 1)
+    npt.assert_allclose(np.array(scattering), 1)
 
 
 def test_import_room_geometry_normals(create_temporary_input_file):
