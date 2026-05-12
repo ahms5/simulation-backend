@@ -127,7 +127,7 @@ class sparrowpyMethod(SimulationMethod):
         etc_radiosity = radiosity.collect_energy_receiver_mono(
             receivers=receiver_coords, direct_sound=True)
 
-        print('writing results...')
+        print('calculating room parameters and writing results...')
         set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON
         dynamic_range_db = 100
@@ -136,7 +136,7 @@ class sparrowpyMethod(SimulationMethod):
         result_db[result_db<limit] = limit
         for i_rec in range(n_receivers):
             edc = pyrato.edc.schroeder_integration(etc_radiosity[i_rec, :], is_energy=True)
-            edc_db = 10*np.log10(edc)
+            edc_db = 10*np.log10(edc.time)
             limit = np.max(edc_db) - dynamic_range_db
             edc_db[edc_db<limit] = limit
             for i_frequency in range(n_bands):
