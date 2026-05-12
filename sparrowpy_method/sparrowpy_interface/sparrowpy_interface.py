@@ -129,11 +129,13 @@ class sparrowpyMethod(SimulationMethod):
         print('writing results...')
         set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON
+        result_db = 10*np.log10(etc_radiosity.time/1e-12)
+        result_db[result_db==-np.inf] = 10*np.log10(np.finfo(float).eps)
         for i_rec in range(n_receivers):
             for i_frequency in range(n_bands):
                 result_container["results"][0]["responses"][i_rec]["receiverResults"].append(
                     {
-                        "data": 10*np.log10(etc_radiosity.time[i_rec, i_frequency]/1e-12).tolist(),
+                        "data": result_db[i_rec, i_frequency].tolist(),
                         "t": etc_radiosity.times.tolist(),
                         "frequency": frequencies[i_frequency],
                         "type": "edc",
