@@ -49,3 +49,17 @@ def test_import_room_geometry(create_temporary_input_file):
     npt.assert_equal(np.array(scattering).shape, (6, 6))
     npt.assert_array_less(np.array(alphas), 1)
     npt.assert_array_less(np.array(scattering), 1)
+
+
+def test_import_room_geometry_normals(create_temporary_input_file):
+    (
+        walls_points, walls_normal, walls_up_vector,
+        patches_points, n_patches, patch_to_wall_ids,
+        material_to_walls, alphas, scattering,
+        ) = _import_room_geometry(
+            create_temporary_input_file, patch_length=5)
+    
+    npt.assert_almost_equal(walls_normal[0], [0, 0, 1])  # floor
+    npt.assert_almost_equal(walls_normal[2], [0, 0, -1])  # ceiling
+    npt.assert_almost_equal(walls_normal[3], [0, 1, 0])  # wall2
+    npt.assert_almost_equal(walls_normal[4], [1, 0, 0])  # wall3

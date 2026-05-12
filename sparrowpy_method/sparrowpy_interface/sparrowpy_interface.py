@@ -119,7 +119,7 @@ class sparrowpyMethod(SimulationMethod):
             for i_frequency in range(n_bands):
                 result_container["results"][0]["responses"][i_rec]["receiverResults"].append(
                     {
-                        "data": 10*np.log10(etc_radiosity.time[i_rec, i_frequency]).tolist(),
+                        "data": 10*np.log10(etc_radiosity.time[i_rec, i_frequency]/1e-12).tolist(),
                         "t": etc_radiosity.times.tolist(),
                         "frequency": frequencies[i_frequency],
                         "type": "edc",
@@ -166,13 +166,17 @@ def _import_room_geometry(json_file_path, patch_length):
     geometry_file = input_data['geo_path']
     gmsh.open(geometry_file)
 
+    # Read the content of the Geo file
+    with open(geometry_file, 'r') as file:
+        geo_content = file.readlines()
+
     # If an lc is given in the geo file, we want to compensate for this
     lc_value = 1 # set to 1 by default
-    # for line in geo_content:
-    #     if "lc =" in line:
-    #         lc_value = float(line.split('=')[1].strip().strip(';'))
-    #         print("Extracted value:", lc_value)
-    #         break
+    for line in geo_content:
+        if "lc =" in line:
+            lc_value = float(line.split('=')[1].strip().strip(';'))
+            print("Extracted value:", lc_value)
+            break
     
     gmsh.option.setNumber('Mesh.MeshSizeFactor', patch_length/lc_value)
 
@@ -219,7 +223,8 @@ def _import_room_geometry(json_file_path, patch_length):
 
     # get the element type for surface mesh
     element_type = gmsh.model.mesh.getElementType("Triangle", 1, True)
-
+    
+    room_center = np.mean(coords, axis=0)
 
     alphas = []
     walls_points = []
@@ -243,7 +248,18 @@ def _import_room_geometry(json_file_path, patch_length):
         for p in wall_points:
             wall_idx.append(np.argmin(np.sum(np.abs((mesh.vertices-p)), axis=1)))
         wall_points = np.unique(mesh.vertices[wall_idx], axis=0, ) 
+
+        # flip normals to the center
         wall_normal = np.median(mesh.face_normals, axis=0)
+        normal_dimension_mask = np.abs(wall_normal)>1e-3
+        surface_center = np.mean(wall_points, axis=0)
+        pointing_inwards = np.sign((room_center-surface_center)[normal_dimension_mask]) == np.sign(wall_normal[normal_dimension_mask])
+        if not np.all(pointing_inwards):
+            wall_normal *= -1
+        elif not np.any(pointing_inwards):
+            raise ValueError('Flipping normals inwards did not work.')
+
+        # calculate wall up vector
         if np.abs(wall_normal[2]) > 1e-2:
             wall_up_vector = [1, 0, 0] 
         else:
