@@ -4,7 +4,6 @@
 - [x] make normals point inside
 
 
-
 ## open
 
 - convex surfaces
