@@ -167,6 +167,7 @@ class sparrowpyMethod(SimulationMethod):
             result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
 
             edt = pyrato.parameters.reverberation_time_linear_regression(edc, 'EDT')
+            edt[edt==-np.inf] = -1
             result_container["results"][0]["responses"][i_rec]["parameters"]['edt'] = edt.tolist()
 
         # Save the updated JSON
