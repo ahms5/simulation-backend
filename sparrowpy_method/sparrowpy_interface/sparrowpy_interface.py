@@ -57,6 +57,7 @@ class sparrowpyMethod(SimulationMethod):
         etc_duration_s = simulation_settings['etc_duration_s']
         max_reflection_order = simulation_settings['max_reflection_order']
         patch_length = simulation_settings['patch_length']
+        sound_power_W = simulation_settings['sound_power_W']
         
         # Read source and receiver positions
         source_coords = pf.Coordinates(
@@ -127,6 +128,8 @@ class sparrowpyMethod(SimulationMethod):
         etc_radiosity = radiosity.collect_energy_receiver_mono(
             receivers=receiver_coords, direct_sound=True)
 
+        # apply sound power
+        etc_radiosity = etc_radiosity * sound_power_W
         print('calculating room parameters and writing results...')
         set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON

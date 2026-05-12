@@ -14,7 +14,8 @@
         "etc_time_resolution_s": 0.001,
         "etc_duration_s": 0.1,
         "max_reflection_order": 20,
-        "patch_length": 3
+        "patch_length": 3,
+        "sound_power_W": 1
     },
     "results": [
         {
