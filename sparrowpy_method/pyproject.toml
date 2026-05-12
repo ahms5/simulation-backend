@@ -32,6 +32,7 @@ dependencies = [
     "gmsh",
     "trimesh",
     "pyfar",
+    "pyrato",
 ]
 
 [project.optional-dependencies]

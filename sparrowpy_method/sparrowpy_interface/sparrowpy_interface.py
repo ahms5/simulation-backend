@@ -9,6 +9,7 @@ import gmsh
 import pyfar as pf
 import numpy as np
 import trimesh
+import pyrato
 
 
 class sparrowpyMethod(SimulationMethod):
@@ -143,7 +144,25 @@ class sparrowpyMethod(SimulationMethod):
                         "type": "edc",
                     }
                 )
-    
+            edc = pyrato.edc.schroeder_integration(etc_radiosity[i_rec, :], is_energy=True)
+            t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
+            result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
+
+            t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')[0]
+            result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
+
+            c80 = pyrato.parameters.clarity(edc, 80)[0]
+            result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
+
+            d50 = pyrato.parameters.definition(edc, 50)[0]
+            result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
+
+            ts = np.ones_like(d50)
+            result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
+
+            spl = 10*np.log10(edc.time[i_rec, ..., 0]/1e-12)
+            result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
+        
         # Save the updated JSON
         set_progress_and_save(100, result_container, json_file_path)
 
