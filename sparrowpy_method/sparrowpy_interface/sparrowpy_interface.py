@@ -131,11 +131,13 @@ class sparrowpyMethod(SimulationMethod):
         set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON
         dynamic_range_db = 100
-        result_db = 10*np.log10(etc_radiosity.time/1e-12)
-        limit = np.max(result_db) - dynamic_range_db
-        result_db[result_db<limit] = limit
+
+        frequency_range = (float(np.min(frequencies)), float(np.max(frequencies)))
+        f_center, f_lower, f_upper = pf.constants.fractional_octave_frequencies_exact(
+            1, frequency_range)
+        assert np.all(np.abs(f_center-frequencies)/frequencies < 1e-2)
         for i_rec in range(n_receivers):
-            edc = pyrato.edc.schroeder_integration(etc_radiosity[i_rec, :], is_energy=True)
+            edc = etc_to_edc(etc_radiosity[i_rec, :], f_lower, f_upper)
             edc_db = 10*np.log10(edc.time/1e-12)
             limit = np.max(edc_db) - dynamic_range_db
             edc_db[edc_db<limit] = limit
@@ -180,6 +182,36 @@ def set_progress_and_save(percentage, result_container, json_file_path):
     # Save the updated JSON
     with open(json_file_path, "w") as json_output:
         json_output.write(json.dumps(result_container, indent=4))
+
+def etc_to_edc(
+        etc: pf.TimeData,
+        lower_frequency_cutoffs: np.ndarray,
+        upper_frequency_cutoffs: np.ndarray,
+        ) -> pf.TimeData:
+    """Convert energy time curve into energy decay curve.
+
+    Parameters
+    ----------
+    etc : pf.TimeData
+        energy time curve of cshape (..., n_bands).
+    lower_frequency_cutoffs : np.ndarray
+        lower cutoff frequencies from the frequency bands of shape (n_bands).
+    upper_frequency_cutoffs : np.ndarray
+        lower cutoff frequencies from the frequency bands of shape (n_bands).
+
+    Results
+    -------
+    edc : pf.TimeData
+        Resulting energy decay curve.
+    """
+    full_frequency_range = np.max(
+        upper_frequency_cutoffs) - np.min(
+            lower_frequency_cutoffs)
+    bandwidth = upper_frequency_cutoffs - lower_frequency_cutoffs
+
+    etc_eq = etc * np.sqrt(bandwidth/full_frequency_range)
+    edc = pyrato.edc.schroeder_integration(etc_eq, is_energy=True)
+    return edc
 
 
 def _import_room_geometry(json_file_path, patch_length):
