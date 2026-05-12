@@ -332,12 +332,10 @@ def _import_room_geometry(json_file_path, patch_length):
     walls_up_vector = np.array(walls_up_vector)
     patches_points = np.concatenate(patches_points)
 
-    scattering = np.zeros_like(alphas)
-
     return (
         walls_points, walls_normal, walls_up_vector,
         patches_points, n_patches, patch_to_wall_ids,
-        material_to_walls, alphas, scattering)
+        material_to_walls, alphas, scatterings)
 
 
 # copy pasted from pyrato
