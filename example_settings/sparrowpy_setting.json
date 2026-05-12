@@ -20,7 +20,7 @@
             "min": 0.001,
             "max": 0.5,
             "step": 0.001,
-            "default": 1,
+            "default": 0.01,
             "endAdornment": "s"
         },
         {
@@ -35,7 +35,7 @@
             "endAdornment": "s"
         },
         {
-            "name": "ETC time resolution",
+            "name": "Maximum reflection order",
             "id": "max_reflection_order",
             "type": "int",
             "display": "text",
@@ -43,7 +43,7 @@
             "max": 100,
             "step": 1,
             "default": 30,
-            "endAdornment": "s"
+            "endAdornment": ""
         },
         {
             "name": "Patch size",
