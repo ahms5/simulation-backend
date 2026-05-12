@@ -160,10 +160,10 @@ class sparrowpyMethod(SimulationMethod):
             d50 = pyrato.parameters.definition(edc, 50)
             result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
 
-            ts = center_time(edc) # TODO replace by pyrato 1.1.0 version
+            ts = center_time(edc)*1000 # in ms TODO replace by pyrato 1.1.0 version
             result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
 
-            spl = 10*np.log10(edc.time[..., 0]/1e-12)
+            spl = 10*np.log10(edc.time[..., 0]/1e-12/(4*np.pi))
             result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
         
         # Save the updated JSON
