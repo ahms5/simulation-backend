@@ -209,7 +209,7 @@ def etc_to_edc(
             lower_frequency_cutoffs)
     bandwidth = upper_frequency_cutoffs - lower_frequency_cutoffs
 
-    etc_eq = etc * np.sqrt(bandwidth/full_frequency_range)
+    etc_eq = etc * (bandwidth/full_frequency_range)
     edc = pyrato.edc.schroeder_integration(etc_eq, is_energy=True)
     return edc
 
