@@ -155,29 +155,30 @@ class sparrowpyMethod(SimulationMethod):
                 )
 
             result_container["results"][0]["responses"][i_rec]["receiverResults"] = rir.time.squeeze().tolist()
-            # t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
-            # t20[t20==-np.inf] = 0
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
+            
+            t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
+            t20[t20==-np.inf] = 0
+            result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
 
-            # t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')
-            # t30[t30==-np.inf] = 0
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
+            t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')
+            t30[t30==-np.inf] = 0
+            result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
 
-            # c80 = pyrato.parameters.clarity(edc, 80)
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
+            c80 = pyrato.parameters.clarity(edc, 80)
+            result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
 
-            # d50 = pyrato.parameters.definition(edc, 50) * 100
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
+            d50 = pyrato.parameters.definition(edc, 50) * 100
+            result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
 
-            # ts = center_time(edc)*1000 # in ms TODO replace by pyrato 1.1.0 version
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
+            ts = center_time(edc)*1000 # in ms TODO replace by pyrato 1.1.0 version
+            result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
 
-            # spl = 10*np.log10(edc.time[..., 0]/1e-12)
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
+            spl = 10*np.log10(edc.time[..., 0]/1e-12)
+            result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
 
-            # edt = pyrato.parameters.reverberation_time_linear_regression(edc, 'EDT')
-            # edt[edt==-np.inf] = -1
-            # result_container["results"][0]["responses"][i_rec]["parameters"]['edt'] = edt.tolist()
+            edt = pyrato.parameters.reverberation_time_linear_regression(edc, 'EDT')
+            edt[edt==-np.inf] = -1
+            result_container["results"][0]["responses"][i_rec]["parameters"]['edt'] = edt.tolist()
 
         # Save the updated JSON
         set_progress_and_save(100, result_container, json_file_path)
