@@ -28,5 +28,15 @@
         "entryFile": "__main__.py",
         "repositoryURL": "https://github.com/LCAV/pyroomacoustics",
         "documentationURL": "https://pyroomacoustics.readthedocs.io"
+    },
+    {
+        "simulationType": "sparrowpy", 
+        "containerImage": "sparrowpy_image:latest",
+        "envVars": {},
+        "label": "Acoustic Radiance Transfer assuming diffuse reflections",
+        "settings":"sparrowpy_setting.json",
+        "entryFile":"sparrowpy_interface.py",
+        "repositoryURL":"https://github.com/sparrow-acoustics/sparrowpy",
+        "documentationURL":"https://sparrowpy.readthedocs.io/en/stable"
     }
 ]
