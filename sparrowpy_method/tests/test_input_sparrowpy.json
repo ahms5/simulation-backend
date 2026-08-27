@@ -15,7 +15,8 @@
         "etc_duration_s": 0.1,
         "max_reflection_order": 20,
         "patch_length": 3,
-        "sound_power_W": 1
+        "sound_power_W": 1,
+        "sampling_rate": 44100
     },
     "results": [
         {

@@ -31,9 +31,11 @@ def test_import_room_geometry(create_temporary_input_file):
     (
         walls_points, walls_normal, walls_up_vector,
         patches_points, n_patches, patch_to_wall_ids,
-        material_to_walls, alphas, scattering,
+        material_to_walls, alphas, scattering, room_volume,
         ) = _import_room_geometry(
             create_temporary_input_file, patch_length=5)
+
+    assert room_volume > 88
     
     # create radiosity object
     radiosity = sparrowpy.DirectionalRadiosityFast(
@@ -60,7 +62,7 @@ def test_import_room_geometry_normals(create_temporary_input_file):
     (
         walls_points, walls_normal, walls_up_vector,
         patches_points, n_patches, patch_to_wall_ids,
-        material_to_walls, alphas, scattering,
+        material_to_walls, alphas, scattering, room_volume,
         ) = _import_room_geometry(
             create_temporary_input_file, patch_length=5)
     

@@ -58,6 +58,7 @@ class sparrowpyMethod(SimulationMethod):
         max_reflection_order = simulation_settings['max_reflection_order']
         patch_length = simulation_settings['patch_length']
         sound_power_W = simulation_settings['sound_power_W']
+        sampling_rate = simulation_settings['sampling_rate']
         
         # Read source and receiver positions
         source_coords = pf.Coordinates(
@@ -81,7 +82,7 @@ class sparrowpyMethod(SimulationMethod):
         (
             walls_points, walls_normal, walls_up_vector,
             patches_points, n_patches, patch_to_wall_ids,
-            material_to_walls, alphas, scattering,
+            material_to_walls, alphas, scattering, room_volume,
             ) = _import_room_geometry(json_file_path, patch_length)
     
         radiosity = sparrowpy.DirectionalRadiosityFast(
@@ -133,49 +134,50 @@ class sparrowpyMethod(SimulationMethod):
         print('calculating room parameters and writing results...')
         set_progress_and_save(95, result_container, json_file_path)
         # Write results back to JSON
-        dynamic_range_db = 100
 
         frequency_range = (float(np.min(frequencies)), float(np.max(frequencies)))
         f_center, f_lower, f_upper = pf.constants.fractional_octave_frequencies_exact(
             1, frequency_range)
         assert np.all(np.abs(f_center-frequencies)/frequencies < 1e-2)
+
+        n_samples = int(sampling_rate * etc_duration_s)
         for i_rec in range(n_receivers):
             edc = etc_to_edc(etc_radiosity[i_rec, :], f_lower, f_upper)
-            edc_db = 10*np.log10(edc.time/1e-12)
-            limit = np.max(edc_db) - dynamic_range_db
-            edc_db[edc_db<limit] = limit
-            for i_frequency in range(n_bands):
-                result_container["results"][0]["responses"][i_rec]["receiverResults"].append(
-                    {
-                        "data": edc_db[i_frequency].tolist(),
-                        "t": etc_radiosity.times.tolist(),
-                        "frequency": frequencies[i_frequency],
-                        "type": "edc",
-                    }
+
+            rir = etc_to_ir(
+                etc_radiosity[i_rec, None],
+                frequencies,
+                sampling_rate,
+                speed_of_sound,
+                n_samples,
+                room_volume,
+                num_fractions=1,
                 )
-            t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
-            t20[t20==-np.inf] = 0
-            result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
 
-            t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')
-            t30[t30==-np.inf] = 0
-            result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
+            result_container["results"][0]["responses"][i_rec]["receiverResults"] = rir.time.squeeze().tolist()
+            # t20 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T20')
+            # t20[t20==-np.inf] = 0
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['t20'] = t20.tolist()
 
-            c80 = pyrato.parameters.clarity(edc, 80)
-            result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
+            # t30 = pyrato.parameters.reverberation_time_linear_regression(edc, 'T30')
+            # t30[t30==-np.inf] = 0
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['t30'] = t30.tolist()
 
-            d50 = pyrato.parameters.definition(edc, 50) * 100
-            result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
+            # c80 = pyrato.parameters.clarity(edc, 80)
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['c80'] = c80.tolist()
 
-            ts = center_time(edc)*1000 # in ms TODO replace by pyrato 1.1.0 version
-            result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
+            # d50 = pyrato.parameters.definition(edc, 50) * 100
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['d50'] = d50.tolist()
 
-            spl = 10*np.log10(edc.time[..., 0]/1e-12)
-            result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
+            # ts = center_time(edc)*1000 # in ms TODO replace by pyrato 1.1.0 version
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['ts'] = ts.tolist()
 
-            edt = pyrato.parameters.reverberation_time_linear_regression(edc, 'EDT')
-            edt[edt==-np.inf] = -1
-            result_container["results"][0]["responses"][i_rec]["parameters"]['edt'] = edt.tolist()
+            # spl = 10*np.log10(edc.time[..., 0]/1e-12)
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['spl_t0_freq'] = spl.tolist()
+
+            # edt = pyrato.parameters.reverberation_time_linear_regression(edc, 'EDT')
+            # edt[edt==-np.inf] = -1
+            # result_container["results"][0]["responses"][i_rec]["parameters"]['edt'] = edt.tolist()
 
         # Save the updated JSON
         set_progress_and_save(100, result_container, json_file_path)
@@ -187,6 +189,29 @@ def set_progress_and_save(percentage, result_container, json_file_path):
     # Save the updated JSON
     with open(json_file_path, "w") as json_output:
         json_output.write(json.dumps(result_container, indent=4))
+
+
+def etc_to_ir(etc, frequencies, sampling_rate, speed_of_sound, n_samples, room_volume, num_fractions=1):
+    reflection_density, t_start = sparrowpy.dsp.reflection_density_room(
+        room_volume=room_volume,
+        n_samples=n_samples,
+        speed_of_sound=speed_of_sound,
+        max_reflection_density=int(sampling_rate / 4),
+        sampling_rate=sampling_rate)
+    dirac_seq = sparrowpy.dsp.dirac_sequence(
+        reflection_density, n_samples, t_start,
+        sampling_rate=sampling_rate, seed=None)
+    filtered_dirac_seq, bandwidth = sparrowpy.dsp.band_filter_signal(
+        dirac_seq, np.array(frequencies), num_fractions,
+    )
+    impulse_response = sparrowpy.dsp.weight_signal_by_etc(
+        energy_time_curve=etc,
+        signal=filtered_dirac_seq,
+        bandwidth=bandwidth,
+    )
+    impulse_response.time = np.sum(impulse_response.time, axis=1)
+
+    return impulse_response
 
 def etc_to_edc(
         etc: pf.TimeData,
@@ -269,6 +294,7 @@ def _import_room_geometry(json_file_path, patch_length):
     dim = 2 # 2D surfaces
     gmsh.model.mesh.generate(dim)
 
+
     # get all named surfaces in the geometry
     surface_group_tags = gmsh.model.getPhysicalGroups(dim=dim)
     surface_group_names = [
@@ -316,6 +342,7 @@ def _import_room_geometry(json_file_path, patch_length):
     walls_normal = []
     walls_up_vector = []
     patches_points = []
+    all_faces = []
     n_patches = 0
     patch_to_wall_ids = []
     for i, surface_name in enumerate(surface_group_names):
@@ -360,12 +387,18 @@ def _import_room_geometry(json_file_path, patch_length):
             patch_to_wall_ids.append(i)
         n_patches += n_patches_wall
         patches_points.append(coords[faces-1, :])
+        all_faces.append(faces)
 
         alpha = np.array(input_data['absorption_coefficients'][surface_name].split(', '), dtype=float)
         alphas.append(alpha)
 
     # finalizing gmsh
     gmsh.finalize()
+
+    # compute room volume from the closed surface mesh
+    all_faces = np.concatenate(all_faces, axis=0)
+    room_mesh = trimesh.Trimesh(coords, all_faces - 1)
+    room_volume = abs(room_mesh.volume)
 
     # save wall information
     walls_points = np.array(walls_points)
@@ -376,7 +409,7 @@ def _import_room_geometry(json_file_path, patch_length):
     return (
         walls_points, walls_normal, walls_up_vector,
         patches_points, n_patches, patch_to_wall_ids,
-        material_to_walls, alphas, scatterings)
+        material_to_walls, alphas, scatterings, room_volume)
 
 
 # copy pasted from pyrato

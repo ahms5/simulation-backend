@@ -66,6 +66,17 @@
             "step": 0.01,
             "default": 0.0796,
             "endAdornment": "W"
+        },
+        {
+            "name": "Sampling rate",
+            "id": "sampling_rate",
+            "type": "int",
+            "display": "text",
+            "min": 4000,
+            "max": 98000,
+            "step": 100,
+            "default": 44100,
+            "endAdornment": "Hz"
         }
         
     ]
