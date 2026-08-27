@@ -3,7 +3,7 @@
     "options": [
         {
             "name": "Speed of sound",
-            "description": "The speed of sound in the room",
+            "description": "The speed of sound in the room.",
             "id": "speed_of_sound",
             "type": "float",
             "display": "text",
@@ -15,6 +15,7 @@
         },
         {
             "name": "ETC time resolution",
+            "description": "The time resolution, in seconds, of the energy-time curve.",
             "id": "etc_time_resolution_s",
             "type": "float",
             "display": "text",
@@ -26,6 +27,7 @@
         },
         {
             "name": "ETC duration",
+            "description": "The duration, in seconds, of the energy-time curve.",
             "id": "etc_duration_s",
             "type": "float",
             "display": "text",
@@ -37,6 +39,7 @@
         },
         {
             "name": "Maximum reflection order",
+            "description": "The maximum reflection order. Higher values will slow down the simulation.",
             "id": "max_reflection_order",
             "type": "int",
             "display": "text",
@@ -48,6 +51,7 @@
         },
         {
             "name": "Patch size",
+            "description": "The length, in meters, of the surface mesh elements.",
             "id": "patch_length",
             "type": "float",
             "display": "text",
@@ -59,6 +63,7 @@
         },
         {
             "name": "Source Power",
+            "description": "Sound power in watts.",
             "id": "sound_power_W",
             "type": "float",
             "display": "text",
@@ -70,6 +75,7 @@
         },
         {
             "name": "Sampling rate",
+            "description": "The sampling rate of the generated impulse response.",
             "id": "sampling_rate",
             "type": "int",
             "display": "text",
