@@ -3,6 +3,7 @@
     "options": [
         {
             "name": "Speed of sound",
+            "description": "The speed of sound in the room",
             "id": "speed_of_sound",
             "type": "float",
             "display": "text",
