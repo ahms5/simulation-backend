@@ -11,8 +11,8 @@
     },
     "simulationSettings": {
         "speed_of_sound": 343.2,
-        "etc_time_resolution_s": 0.001,
-        "etc_duration_s": 0.1,
+        "etc_time_resolution_s": 0.01,
+        "etc_duration_s": 1,
         "max_reflection_order": 20,
         "patch_length": 3,
         "sound_power_W": 1,
